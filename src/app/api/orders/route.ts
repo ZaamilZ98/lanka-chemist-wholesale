@@ -261,38 +261,29 @@ export async function POST(request: NextRequest) {
   // Decrement stock and record movements
   for (const { raw, product } of validItems) {
     const newStock = product.stock_quantity - raw.quantity;
+
+    // Fetch current total_sold so we can increment it
+    // (Supabase JS client does not support atomic increment)
+    const { data: currentProduct } = await supabase
+      .from("products")
+      .select("total_sold")
+      .eq("id", product.id)
+      .single();
+
     await supabase
       .from("products")
       .update({
         stock_quantity: newStock,
-        total_sold: product.stock_quantity > 0 ? raw.quantity : 0, // Will be incremented
+        total_sold: ((currentProduct?.total_sold as number) || 0) + raw.quantity,
       })
       .eq("id", product.id);
-
-    // Use RPC or direct update for atomic increment of total_sold
-    // Since Supabase JS doesn't support increment, we fetch + set
-    const { data: currentProduct } = await supabase
-      .from("products")
-      .select("total_sold, stock_quantity")
-      .eq("id", product.id)
-      .single();
-
-    if (currentProduct) {
-      await supabase
-        .from("products")
-        .update({
-          stock_quantity: product.stock_quantity - raw.quantity,
-          total_sold: (currentProduct.total_sold || 0) + raw.quantity,
-        })
-        .eq("id", product.id);
-    }
 
     // Stock movement record
     await supabase.from("stock_movements").insert({
       product_id: product.id,
       quantity_change: -raw.quantity,
       quantity_before: product.stock_quantity,
-      quantity_after: product.stock_quantity - raw.quantity,
+      quantity_after: newStock,
       reason: "sale",
       reference_id: order.id,
       notes: `Order ${order.order_number}`,
