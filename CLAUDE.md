@@ -244,15 +244,15 @@ Update this checklist as features are completed:
   - [x] Create constants/labels file (order statuses, dosage forms, upload limits)
   - [x] Create Haversine distance utility for delivery fee calc
 
-- [ ] **Product Catalog**
+- [x] **Product Catalog**
   - [x] Database schema for products
-  - [ ] Product listing page with grid view
-  - [ ] Product detail page
-  - [ ] Search functionality
-  - [ ] Filter by: in-stock, prescription/OTC, drug class, dosage form, manufacturer
-  - [ ] Sort by: name, price, newest, popularity
-  - [ ] Category organization (Medicines, Surgical, Equipment, SPC)
-  - [ ] SPC section with Rs 50,000 minimum notice
+  - [x] Product listing page with grid view
+  - [x] Product detail page
+  - [x] Search functionality
+  - [x] Filter by: in-stock, prescription/OTC, drug class, dosage form, manufacturer
+  - [x] Sort by: name, price, newest, popularity
+  - [x] Category organization (Medicines, Surgical, Equipment, SPC)
+  - [x] SPC section with Rs 50,000 minimum notice
 
 - [ ] **Image Management**
   - [ ] Image upload functionality
@@ -274,21 +274,21 @@ Update this checklist as features are completed:
   - [ ] Approve/reject functionality with reason
   - [ ] Email notification on approval/rejection
 
-- [ ] **Shopping Cart**
-  - [ ] Add to cart (logged in users only)
-  - [ ] Update quantities
-  - [ ] Remove items
-  - [ ] Cart persistence
-  - [ ] Stock validation
+- [x] **Shopping Cart**
+  - [x] Add to cart (logged in users only)
+  - [x] Update quantities
+  - [x] Remove items
+  - [x] Cart persistence
+  - [x] Stock validation
 
-- [ ] **Order Placement**
-  - [ ] Order review page
-  - [ ] Delivery method selection (pickup, standard, express)
-  - [ ] Delivery address entry
-  - [ ] Order notes field
-  - [ ] "We may contact you" notice
-  - [ ] Order confirmation page
-  - [ ] Order number generation
+- [x] **Order Placement**
+  - [x] Order review page
+  - [x] Delivery method selection (pickup, standard, express)
+  - [x] Delivery address entry
+  - [x] Order notes field
+  - [x] "We may contact you" notice
+  - [x] Order confirmation page
+  - [x] Order number generation
 
 - [ ] **Admin Panel - Dashboard**
   - [ ] Today's orders and revenue

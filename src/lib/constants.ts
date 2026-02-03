@@ -68,6 +68,19 @@ export const ALLOWED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".pdf"];
 // Pagination
 export const DEFAULT_PAGE_SIZE = 20;
 
+// Delivery methods
+export const DELIVERY_METHOD_LABELS: Record<string, string> = {
+  pickup: "Store Pickup",
+  standard: "Standard Delivery",
+  express: "Express Delivery",
+};
+
+// Payment methods
+export const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  cash_on_delivery: "Cash on Delivery",
+  bank_transfer: "Bank Transfer",
+};
+
 // Auth
 export const MAX_LOGIN_ATTEMPTS = 5;
 export const LOGIN_LOCKOUT_MINUTES = 15;

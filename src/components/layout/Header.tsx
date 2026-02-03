@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { CUSTOMER_STATUS_LABELS } from "@/lib/constants";
@@ -8,6 +8,36 @@ import { CUSTOMER_STATUS_LABELS } from "@/lib/constants";
 export default function Header() {
   const { user, isLoading, isAuthenticated, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+
+  const fetchCartCount = useCallback(async () => {
+    try {
+      const res = await fetch("/api/cart/count");
+      if (res.ok) {
+        const data = await res.json();
+        setCartCount(data.count ?? 0);
+      }
+    } catch {
+      // silently fail — badge just won't show
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated && user?.status === "approved") {
+      fetchCartCount();
+    } else {
+      setCartCount(0);
+    }
+  }, [isAuthenticated, user?.status, fetchCartCount]);
+
+  // Listen for cart-updated events
+  useEffect(() => {
+    const handler = () => fetchCartCount();
+    window.addEventListener("cart-updated", handler);
+    return () => window.removeEventListener("cart-updated", handler);
+  }, [fetchCartCount]);
+
+  const showCart = isAuthenticated && user?.status === "approved";
 
   const statusBadge = user ? (
     <span
@@ -58,8 +88,24 @@ export default function Header() {
             </Link>
           </nav>
 
-          {/* Desktop auth */}
+          {/* Desktop cart + auth */}
           <div className="hidden md:flex items-center gap-3">
+            {showCart && (
+              <Link
+                href="/cart"
+                className="relative p-2 text-gray-600 hover:text-brand-green transition-colors"
+                aria-label="Shopping cart"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                </svg>
+                {cartCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-brand-green px-1 text-[10px] font-bold text-white">
+                    {cartCount > 99 ? "99+" : cartCount}
+                  </span>
+                )}
+              </Link>
+            )}
             {isLoading ? (
               <div className="h-8 w-24 bg-gray-100 rounded animate-pulse" />
             ) : isAuthenticated ? (
@@ -131,6 +177,18 @@ export default function Header() {
             >
               Categories
             </Link>
+            {showCart && (
+              <Link
+                href="/cart"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-brand-green"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                </svg>
+                Cart{cartCount > 0 && ` (${cartCount})`}
+              </Link>
+            )}
             <div className="border-t border-gray-100 pt-3">
               {isLoading ? null : isAuthenticated ? (
                 <>
