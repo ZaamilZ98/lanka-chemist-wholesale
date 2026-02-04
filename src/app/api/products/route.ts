@@ -7,6 +7,12 @@ function escapeIlike(str: string): string {
   return str.replace(/[%_\\]/g, (ch) => `\\${ch}`);
 }
 
+// Escape special characters for PostgREST .or() filter values
+// Commas, parentheses, and dots have special meaning in PostgREST filters
+function escapePostgrestValue(str: string): string {
+  return str.replace(/[,().\\]/g, (ch) => `\\${ch}`);
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
@@ -101,11 +107,12 @@ export async function GET(request: NextRequest) {
 
     // Apply search across product fields + manufacturer/category names
     if (q) {
+      const safeQ = escapePostgrestValue(q);
       const orParts = [
-        `generic_name.ilike.%${q}%`,
-        `brand_name.ilike.%${q}%`,
-        `sku.ilike.%${q}%`,
-        `barcode.ilike.%${q}%`,
+        `generic_name.ilike.%${safeQ}%`,
+        `brand_name.ilike.%${safeQ}%`,
+        `sku.ilike.%${safeQ}%`,
+        `barcode.ilike.%${safeQ}%`,
       ];
       if (searchManufacturerIds.length > 0) {
         orParts.push(`manufacturer_id.in.(${searchManufacturerIds.join(",")})`);

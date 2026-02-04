@@ -3,6 +3,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import { hashPassword, signToken, setAuthCookie } from "@/lib/auth";
 import { validateRegistrationInput, sanitizeString } from "@/lib/validate";
 import { R2_PUBLIC_URL } from "@/lib/r2";
+import { processNewRegistration } from "@/lib/order-notifications";
 
 export async function POST(request: NextRequest) {
   try {
@@ -131,6 +132,14 @@ export async function POST(request: NextRequest) {
     // Sign JWT and set cookie
     const token = signToken(customer.id, customer.email);
     await setAuthCookie(token);
+
+    // Fire-and-forget: notify admin of new registration
+    processNewRegistration({
+      customerId: customer.id,
+      customerName: customer.contact_name,
+      customerType: customer.customer_type,
+      email: customer.email,
+    });
 
     return NextResponse.json(
       {

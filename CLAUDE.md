@@ -254,11 +254,11 @@ Update this checklist as features are completed:
   - [x] Category organization (Medicines, Surgical, Equipment, SPC)
   - [x] SPC section with Rs 50,000 minimum notice
 
-- [ ] **Image Management**
-  - [ ] Image upload functionality
-  - [ ] Automatic watermarking with "Lanka Chemist"
-  - [ ] Multiple images per product
-  - [ ] Image optimization
+- [x] **Image Management**
+  - [x] Image upload functionality
+  - [x] Automatic watermarking with "Lanka Chemist"
+  - [x] Multiple images per product
+  - [x] Image optimization
 
 - [x] **Customer Registration & Authentication**
   - [x] Registration form with required fields
@@ -268,11 +268,11 @@ Update this checklist as features are completed:
   - [x] Session management
   - [x] "Pending Verification" status for new accounts
 
-- [ ] **Account Verification System**
-  - [ ] Admin view of pending registrations
-  - [ ] Document viewing for admin
-  - [ ] Approve/reject functionality with reason
-  - [ ] Email notification on approval/rejection
+- [x] **Account Verification System**
+  - [x] Admin view of pending registrations
+  - [x] Document viewing for admin
+  - [x] Approve/reject functionality with reason
+  - [x] Email notification on approval/rejection
 
 - [x] **Shopping Cart**
   - [x] Add to cart (logged in users only)
@@ -290,59 +290,68 @@ Update this checklist as features are completed:
   - [x] Order confirmation page
   - [x] Order number generation
 
-- [ ] **Admin Panel - Dashboard**
-  - [ ] Today's orders and revenue
-  - [ ] Pending orders count
-  - [ ] Low stock alerts
-  - [ ] Pending verifications count
+- [x] **Admin Panel - Foundation & Dashboard**
+  - [x] Admin layout with sidebar nav + top bar + mobile hamburger
+  - [x] Admin login page and auth flow (JWT, rate limiting, cookie)
+  - [x] Admin setup endpoint (one-time first admin creation)
+  - [x] Admin auth API routes (login, me, logout)
+  - [x] Middleware: /admin routes redirect to /admin/login, login exclusion
+  - [x] Storefront header hidden on admin pages
+  - [x] Shared admin components (StatCard, DataTable, StatusBadge, PageHeader, EmptyState)
+  - [x] Today's orders and revenue
+  - [x] Pending orders count
+  - [x] Low stock alerts
+  - [x] Pending verifications count
+  - [x] Recent orders table
+  - [x] Low stock products list
 
-- [ ] **Admin Panel - Product Management**
-  - [ ] Add new product
-  - [ ] Edit product
-  - [ ] Hide/show product
-  - [ ] Delete product
-  - [ ] Duplicate product
-  - [ ] Bulk CSV import
-  - [ ] Quick price update
-  - [ ] Stock adjustment with reason
+- [x] **Admin Panel - Product Management**
+  - [x] Add new product
+  - [x] Edit product
+  - [x] Hide/show product
+  - [x] Delete product (soft delete for products with order references)
+  - [x] Duplicate product
+  - [x] Bulk CSV import
+  - [x] Quick price update (bulk price editor)
+  - [x] Stock adjustment with reason (+ stock movement audit trail)
 
-- [ ] **Admin Panel - Order Management**
-  - [ ] Order list with filters
-  - [ ] Order status workflow (New → Confirmed → Packing → Ready → Dispatched → Delivered)
-  - [ ] Update order status
-  - [ ] Print picking list
-  - [ ] Print invoice
-  - [ ] Cancel order
+- [x] **Admin Panel - Order Management**
+  - [x] Order list with filters
+  - [x] Order status workflow (New → Confirmed → Packing → Ready → Dispatched → Delivered)
+  - [x] Update order status
+  - [x] Print picking list
+  - [x] Print invoice
+  - [x] Cancel order (with required reason)
 
-- [ ] **Admin Panel - Customer Management**
-  - [ ] Customer list with search/filter
-  - [ ] View customer details
-  - [ ] View uploaded documents
-  - [ ] Approve/reject customers
-  - [ ] View customer order history
-  - [ ] Add notes to customer
-  - [ ] Block/suspend account
+- [x] **Admin Panel - Customer Management**
+  - [x] Customer list with search/filter
+  - [x] View customer details
+  - [x] View uploaded documents
+  - [x] Approve/reject customers (with reason for rejection)
+  - [x] View customer order history
+  - [x] Add notes to customer
+  - [x] Block/suspend account
 
-- [ ] **Email Notifications**
-  - [ ] Order confirmation email
-  - [ ] Order status update emails
-  - [ ] Account verification status email
-  - [ ] Admin notification for new orders
-  - [ ] Admin notification for new registrations
+- [x] **Email Notifications**
+  - [x] Order confirmation email
+  - [x] Order status update emails
+  - [x] Account verification status email
+  - [x] Admin notification for new orders
+  - [x] Admin notification for new registrations
 
-- [ ] **Invoice Generation** (Read PDF skill first)
-  - [ ] Auto-generate PDF invoice
-  - [ ] Include pharmacy NMRA license
-  - [ ] Itemized product list
-  - [ ] Customer details
-  - [ ] Bank details for transfer
-  - [ ] Email invoice to customer
+- [x] **Invoice Generation** (Read PDF skill first)
+  - [x] Auto-generate PDF invoice
+  - [x] Include pharmacy NMRA license
+  - [x] Itemized product list
+  - [x] Customer details
+  - [x] Bank details for transfer
+  - [x] Email invoice to customer
 
 ### Phase 2 - Enhancements
 - [ ] **Delivery Calculation**
-  - [ ] Haversine formula implementation
-  - [ ] Rs 25/km rate calculation
-  - [ ] "Subject to change" notice
+  - [x] Haversine formula implementation
+  - [x] Rs 25/km rate calculation
+  - [x] "Subject to change" notice
   - [ ] Address caching
 
 - [ ] **Quick Reorder**

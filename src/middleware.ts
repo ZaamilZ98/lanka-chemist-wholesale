@@ -47,10 +47,21 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // Protect admin routes — redirect to login if no valid admin cookie
+  // Protect admin routes — redirect to /admin/login if no valid admin cookie
   if (pathname.startsWith("/admin")) {
+    const isAdminLogin = pathname === "/admin/login";
+
+    if (isAdminLogin) {
+      // Redirect authenticated admins away from login page
+      if (hasValidAdminToken) {
+        return NextResponse.redirect(new URL("/admin", request.url));
+      }
+      return NextResponse.next();
+    }
+
+    // All other admin pages require auth
     if (!hasValidAdminToken) {
-      return NextResponse.redirect(new URL("/auth/login", request.url));
+      return NextResponse.redirect(new URL("/admin/login", request.url));
     }
   }
 
@@ -64,6 +75,7 @@ export const config = {
     "/checkout/:path*",
     "/auth/login",
     "/auth/register",
+    "/admin",
     "/admin/:path*",
   ],
 };

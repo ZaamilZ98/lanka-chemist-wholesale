@@ -4,6 +4,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import { sanitizeString } from "@/lib/validate";
 import { calculateDistance, calculateDeliveryFee } from "@/lib/haversine";
 import { DELIVERY_RATE_PER_KM } from "@/lib/constants";
+import { processNewOrder } from "@/lib/order-notifications";
 import type { CartItemResponse, StockIssue } from "@/types/api";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -292,6 +293,9 @@ export async function POST(request: NextRequest) {
 
   // Clear cart
   await supabase.from("cart_items").delete().eq("customer_id", auth.sub);
+
+  // Fire-and-forget: generate invoice, send emails
+  processNewOrder({ orderId: order.id, orderNumber: order.order_number, customerId: auth.sub });
 
   return NextResponse.json(
     {

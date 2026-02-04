@@ -55,7 +55,7 @@ export const SPC_MINIMUM_ORDER = 50000;
 
 export const DELIVERY_RATE_PER_KM = 25;
 
-// File upload constraints
+// File upload constraints (documents: SLMC/NMRA uploads)
 export const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 export const ALLOWED_IMAGE_TYPES = [
   "image/jpeg",
@@ -64,6 +64,15 @@ export const ALLOWED_IMAGE_TYPES = [
   "application/pdf",
 ];
 export const ALLOWED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".pdf"];
+
+// Product image constraints
+export const MAX_PRODUCT_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+export const MAX_PRODUCT_IMAGES = 8;
+export const ALLOWED_PRODUCT_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+];
 
 // Pagination
 export const DEFAULT_PAGE_SIZE = 20;
@@ -81,6 +90,43 @@ export const PAYMENT_METHOD_LABELS: Record<string, string> = {
   bank_transfer: "Bank Transfer",
 };
 
+// Stock adjustment reasons
+export const STOCK_ADJUSTMENT_REASON_LABELS: Record<string, string> = {
+  purchase: "Purchase",
+  sale: "Sale",
+  return: "Return",
+  damage: "Damage",
+  expired: "Expired",
+  count_correction: "Count Correction",
+  other: "Other",
+};
+
+// Customer types
+export const CUSTOMER_TYPE_LABELS: Record<string, string> = {
+  doctor: "Doctor",
+  dentist: "Dentist",
+  pharmacy: "Pharmacy",
+  clinic: "Private Clinic",
+  dispensary: "Dispensary",
+  other: "Other",
+};
+
+// Payment statuses
+export const PAYMENT_STATUS_LABELS: Record<string, string> = {
+  pending: "Pending",
+  paid: "Paid",
+  refunded: "Refunded",
+};
+
 // Auth
 export const MAX_LOGIN_ATTEMPTS = 5;
 export const LOGIN_LOCKOUT_MINUTES = 15;
+
+// Valid order status transitions (current → allowed next statuses)
+export const VALID_ORDER_TRANSITIONS: Record<string, string[]> = {
+  new: ["confirmed", "cancelled"],
+  confirmed: ["packing", "cancelled"],
+  packing: ["ready", "cancelled"],
+  ready: ["dispatched"],
+  dispatched: ["delivered"],
+};

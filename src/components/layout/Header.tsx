@@ -2,13 +2,18 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { CUSTOMER_STATUS_LABELS } from "@/lib/constants";
 
 export default function Header() {
+  const pathname = usePathname();
   const { user, isLoading, isAuthenticated, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+
+  // Hide storefront header on admin pages
+  if (pathname.startsWith("/admin")) return null;
 
   const fetchCartCount = useCallback(async () => {
     try {
