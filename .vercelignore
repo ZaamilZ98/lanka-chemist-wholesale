@@ -1,0 +1,10 @@
+node_modules
+.next
+.env.local
+.env
+*.log
+database/
+CLAUDE.md
+PLAN.md
+PROJECT_SPEC.md
+skills/

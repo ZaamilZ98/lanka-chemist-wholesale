@@ -3,6 +3,24 @@ import { NextRequest, NextResponse } from "next/server";
 const CUSTOMER_COOKIE = "lc_token";
 const ADMIN_COOKIE = "lc_admin_token";
 
+// Security headers to add to all responses
+const securityHeaders = {
+  "X-Frame-Options": "DENY",
+  "X-Content-Type-Options": "nosniff",
+  "X-XSS-Protection": "1; mode=block",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  // Permissive CSP for Next.js (inline scripts, styles, eval for dev)
+  "Content-Security-Policy": [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https:",
+    "font-src 'self' data:",
+    "connect-src 'self' https:",
+    "frame-ancestors 'none'",
+  ].join("; "),
+};
+
 // Routes requiring customer auth
 const PROTECTED_PREFIXES = ["/account", "/cart", "/checkout"];
 // Routes only for unauthenticated users
@@ -36,14 +54,14 @@ export function middleware(request: NextRequest) {
     if (!hasValidCustomerToken) {
       const loginUrl = new URL("/auth/login", request.url);
       loginUrl.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(loginUrl);
+      return addSecurityHeaders(NextResponse.redirect(loginUrl));
     }
   }
 
   // Redirect authenticated users away from login/register
   if (AUTH_PAGES.some((p) => pathname === p)) {
     if (hasValidCustomerToken) {
-      return NextResponse.redirect(new URL("/account", request.url));
+      return addSecurityHeaders(NextResponse.redirect(new URL("/account", request.url)));
     }
   }
 
@@ -54,18 +72,26 @@ export function middleware(request: NextRequest) {
     if (isAdminLogin) {
       // Redirect authenticated admins away from login page
       if (hasValidAdminToken) {
-        return NextResponse.redirect(new URL("/admin", request.url));
+        return addSecurityHeaders(NextResponse.redirect(new URL("/admin", request.url)));
       }
-      return NextResponse.next();
+      return addSecurityHeaders(NextResponse.next());
     }
 
     // All other admin pages require auth
     if (!hasValidAdminToken) {
-      return NextResponse.redirect(new URL("/admin/login", request.url));
+      return addSecurityHeaders(NextResponse.redirect(new URL("/admin/login", request.url)));
     }
   }
 
-  return NextResponse.next();
+  return addSecurityHeaders(NextResponse.next());
+}
+
+/** Add security headers to response */
+function addSecurityHeaders(response: NextResponse): NextResponse {
+  for (const [key, value] of Object.entries(securityHeaders)) {
+    response.headers.set(key, value);
+  }
+  return response;
 }
 
 export const config = {

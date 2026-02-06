@@ -8,7 +8,10 @@ import Badge from "@/components/ui/Badge";
 import ImageGallery from "./ImageGallery";
 import QuantitySelector from "./QuantitySelector";
 import RelatedProducts from "./RelatedProducts";
+import ProductAlternatives from "./ProductAlternatives";
+import RecentlyViewedProducts from "./RecentlyViewedProducts";
 import SpcNotice from "./SpcNotice";
+import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import Skeleton from "@/components/ui/Skeleton";
 import { useCart } from "@/hooks/useCart";
 import {
@@ -26,6 +29,7 @@ export default function ProductDetailClient({
 }: ProductDetailClientProps) {
   const { isAuthenticated, isApproved, isPending } = useAuth();
   const { addToCart } = useCart();
+  const { addToRecentlyViewed } = useRecentlyViewed();
   const router = useRouter();
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [related, setRelated] = useState<ProductListItem[]>([]);
@@ -50,6 +54,10 @@ export default function ProductDetailClient({
       .then((data) => {
         setProduct(data.product);
         setRelated(data.related ?? []);
+        // Track view for recently viewed products
+        if (data.product?.id) {
+          addToRecentlyViewed(data.product.id);
+        }
       })
       .catch(() => {
         setError("Product not found");
@@ -57,7 +65,7 @@ export default function ProductDetailClient({
       .finally(() => {
         setIsLoading(false);
       });
-  }, [productId]);
+  }, [productId, addToRecentlyViewed]);
 
   if (isLoading) {
     return (
@@ -380,6 +388,14 @@ export default function ProductDetailClient({
         </div>
       </div>
 
+      {/* Product alternatives (shown when out of stock) */}
+      {!inStock && (
+        <ProductAlternatives
+          productId={product.id}
+          showWholesalePrice={showWholesale}
+        />
+      )}
+
       {/* Related products */}
       {related.length > 0 && (
         <div className="mt-12 pt-8 border-t border-gray-200">
@@ -389,6 +405,12 @@ export default function ProductDetailClient({
           />
         </div>
       )}
+
+      {/* Recently viewed products */}
+      <RecentlyViewedProducts
+        currentProductId={product.id}
+        showWholesalePrice={showWholesale}
+      />
     </div>
   );
 }

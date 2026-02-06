@@ -348,31 +348,44 @@ Update this checklist as features are completed:
   - [x] Email invoice to customer
 
 ### Phase 2 - Enhancements
-- [ ] **Delivery Calculation**
+- [x] **Delivery Calculation**
   - [x] Haversine formula implementation
   - [x] Rs 25/km rate calculation
   - [x] "Subject to change" notice
-  - [ ] Address caching
+  - [x] Address caching (in-memory cache for store coords + calculated fees, frontend debouncing)
 
-- [ ] **Quick Reorder**
-  - [ ] View past orders
-  - [ ] Repeat order with one click
+- [x] **Quick Reorder**
+  - [x] View past orders
+  - [x] Repeat order with one click
 
-- [ ] **Reports** (Read XLSX skill first)
-  - [ ] Sales reports by period
-  - [ ] Best-selling products report
-  - [ ] Customer purchase analysis
-  - [ ] Inventory movement report
-  - [ ] Outstanding orders report
+- [x] **Reports** (Read XLSX skill first)
+  - [x] Sales reports by period
+  - [x] Best-selling products report
+  - [x] Customer purchase analysis
+  - [x] Inventory movement report
+  - [x] Outstanding orders report
 
-- [ ] **Product Alternatives**
-  - [ ] Suggest same generic drug alternatives
-  - [ ] Suggest similar therapeutic class products
-  - [ ] Show when item is out of stock
+- [x] **Product Alternatives**
+  - [x] Suggest same generic drug alternatives
+  - [x] Suggest similar therapeutic class products
+  - [x] Show when item is out of stock
+
+- [x] **Customer Account Enhancements**
+  - [x] View and edit profile (contact name, phone, WhatsApp, business name)
+  - [x] Change password functionality
+  - [x] Saved addresses management (add, edit, delete, set default)
+  - [x] Account sidebar navigation updated
+
+- [x] **Recently Viewed Products**
+  - [x] localStorage-based tracking (last 10 products, 30-day expiry)
+  - [x] Display on product detail pages
 
 ### Phase 3 - Future
 - [ ] Advanced analytics dashboard
 - [ ] Mobile app (future consideration)
+- [ ] Price drop alerts (subscribe to product notifications)
+- [ ] FAQ section
+- [ ] About Us page with pharmacy license and history
 
 ---
 

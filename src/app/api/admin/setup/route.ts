@@ -1,8 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { hashPassword } from "@/lib/auth";
+import { checkIpRateLimit } from "@/lib/rate-limit";
+import { logError } from "@/lib/logger";
+
+const SETUP_MAX_ATTEMPTS = 5;
+const SETUP_WINDOW_MINUTES = 15;
 
 export async function POST(request: NextRequest) {
+  // Get client IP for rate limiting
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown";
+
+  // Check rate limit
+  const rateLimitError = checkIpRateLimit(ip, "admin-setup", SETUP_MAX_ATTEMPTS, SETUP_WINDOW_MINUTES);
+  if (rateLimitError) {
+    return NextResponse.json({ error: rateLimitError }, { status: 429 });
+  }
+
   try {
     const body = await request.json();
     const { name, email, password } = body;
@@ -29,7 +45,7 @@ export async function POST(request: NextRequest) {
       .select("id", { count: "exact", head: true });
 
     if (countError) {
-      console.error("Admin setup count error:", countError);
+      logError("Admin setup", countError);
       return NextResponse.json(
         { error: "Failed to check admin status" },
         { status: 500 },
@@ -55,7 +71,7 @@ export async function POST(request: NextRequest) {
       });
 
     if (insertError) {
-      console.error("Admin setup insert error:", insertError);
+      logError("Admin setup", insertError);
       return NextResponse.json(
         { error: "Failed to create admin account" },
         { status: 500 },
@@ -64,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ message: "Admin account created successfully" });
   } catch (error) {
-    console.error("Admin setup error:", error);
+    logError("Admin setup", error);
     return NextResponse.json(
       { error: "Setup failed. Please try again." },
       { status: 500 },

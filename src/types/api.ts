@@ -237,3 +237,42 @@ export interface OrderDetailResponse {
     postal_code: string | null;
   } | null;
 }
+
+// --- Customer Order List types ---
+
+export interface CustomerOrderListItem {
+  id: string;
+  order_number: string;
+  status: string;
+  subtotal: number;
+  delivery_fee: number;
+  total: number;
+  delivery_method: string;
+  payment_method: string;
+  payment_status: string;
+  item_count: number;
+  created_at: string;
+}
+
+export interface CustomerOrderListResponse {
+  orders: CustomerOrderListItem[];
+  total: number;
+  page: number;
+  per_page: number;
+  total_pages: number;
+}
+
+// --- Reorder types ---
+
+export interface ReorderWarning {
+  product_name: string;
+  reason: "out_of_stock" | "unavailable" | "quantity_reduced";
+  original_quantity?: number;
+  added_quantity?: number;
+}
+
+export interface ReorderResponse {
+  success: boolean;
+  items_added: number;
+  warnings: ReorderWarning[];
+}

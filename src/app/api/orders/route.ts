@@ -5,11 +5,14 @@ import { sanitizeString } from "@/lib/validate";
 import { calculateDistance, calculateDeliveryFee } from "@/lib/haversine";
 import { DELIVERY_RATE_PER_KM } from "@/lib/constants";
 import { processNewOrder } from "@/lib/order-notifications";
-import type { CartItemResponse, StockIssue } from "@/types/api";
+import { logError } from "@/lib/logger";
+import type { CartItemResponse, StockIssue, CustomerOrderListResponse } from "@/types/api";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const VALID_DELIVERY_METHODS = ["pickup", "standard", "express"];
 const VALID_PAYMENT_METHODS = ["cash_on_delivery", "bank_transfer"];
+const DEFAULT_PER_PAGE = 10;
+const MAX_PER_PAGE = 50;
 
 const CART_ITEM_SELECT = `
   id, product_id, quantity, created_at, updated_at,
@@ -18,6 +21,90 @@ const CART_ITEM_SELECT = `
     wholesale_price, stock_quantity, is_active, is_visible, section, sku
   )
 `;
+
+/**
+ * GET /api/orders — List customer orders with pagination
+ */
+export async function GET(request: NextRequest) {
+  const auth = await getAuthenticatedCustomer();
+  if (!auth) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+  const perPage = Math.min(
+    MAX_PER_PAGE,
+    Math.max(1, parseInt(searchParams.get("per_page") || String(DEFAULT_PER_PAGE), 10))
+  );
+  const status = searchParams.get("status");
+
+  const supabase = createServerClient();
+
+  try {
+    // Build query
+    let query = supabase
+      .from("orders")
+      .select(
+        `
+        id, order_number, status, subtotal, delivery_fee, total,
+        delivery_method, payment_method, payment_status, created_at,
+        order_items(id)
+      `,
+        { count: "exact" }
+      )
+      .eq("customer_id", auth.sub)
+      .order("created_at", { ascending: false });
+
+    // Filter by status if provided
+    if (status) {
+      query = query.eq("status", status);
+    }
+
+    // Pagination
+    const from = (page - 1) * perPage;
+    const to = from + perPage - 1;
+    query = query.range(from, to);
+
+    const { data: orders, count, error } = await query;
+
+    if (error) {
+      logError("Orders GET", error);
+      return NextResponse.json({ error: "Failed to fetch orders" }, { status: 500 });
+    }
+
+    // Transform to include item_count
+    const orderList = (orders ?? []).map((order) => ({
+      id: order.id,
+      order_number: order.order_number,
+      status: order.status,
+      subtotal: order.subtotal,
+      delivery_fee: order.delivery_fee,
+      total: order.total,
+      delivery_method: order.delivery_method,
+      payment_method: order.payment_method,
+      payment_status: order.payment_status,
+      item_count: Array.isArray(order.order_items) ? order.order_items.length : 0,
+      created_at: order.created_at,
+    }));
+
+    const total = count ?? 0;
+    const totalPages = Math.ceil(total / perPage);
+
+    const response: CustomerOrderListResponse = {
+      orders: orderList,
+      total,
+      page,
+      per_page: perPage,
+      total_pages: totalPages,
+    };
+
+    return NextResponse.json(response);
+  } catch (error) {
+    logError("Orders GET", error);
+    return NextResponse.json({ error: "Failed to fetch orders" }, { status: 500 });
+  }
+}
 
 /**
  * POST /api/orders — Place an order from cart contents

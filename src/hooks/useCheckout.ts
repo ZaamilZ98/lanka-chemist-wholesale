@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useCart } from "./useCart";
 import type {
   BankDetailsResponse,
@@ -8,6 +8,9 @@ import type {
   DeliveryFeeResponse,
   StockIssue,
 } from "@/types/api";
+
+// Debounce delay for fee calculations (ms)
+const FEE_DEBOUNCE_MS = 300;
 
 interface Address {
   id: string;
@@ -57,6 +60,11 @@ export function useCheckout() {
   const [submitError, setSubmitError] = useState("");
   const [stockIssues, setStockIssues] = useState<StockIssue[]>([]);
 
+  // Debounce ref for fee calculation
+  const feeDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Cache for already-calculated fees (method:addressId -> fee data)
+  const feeCacheRef = useRef<Map<string, { fee: number; note: string; distance: number | null }>>(new Map());
+
   // Fetch addresses
   const fetchAddresses = useCallback(async () => {
     setIsLoadingAddresses(true);
@@ -105,8 +113,18 @@ export function useCheckout() {
     [],
   );
 
-  // Calculate delivery fee
+  // Calculate delivery fee (with caching)
   const calculateFee = useCallback(async () => {
+    // Check cache first
+    const cacheKey = `${deliveryMethod}:${selectedAddressId}`;
+    const cached = feeCacheRef.current.get(cacheKey);
+    if (cached) {
+      setDeliveryFee(cached.fee);
+      setDeliveryFeeNote(cached.note);
+      setDeliveryDistanceKm(cached.distance);
+      return;
+    }
+
     setIsCalculatingFee(true);
     try {
       const res = await fetch("/api/checkout/delivery-fee", {
@@ -122,6 +140,12 @@ export function useCheckout() {
         setDeliveryFee(data.delivery_fee);
         setDeliveryFeeNote(data.fee_note);
         setDeliveryDistanceKm(data.delivery_distance_km);
+        // Cache the result
+        feeCacheRef.current.set(cacheKey, {
+          fee: data.delivery_fee,
+          note: data.fee_note,
+          distance: data.delivery_distance_km,
+        });
       }
     } catch {
       setDeliveryFee(0);
@@ -131,10 +155,34 @@ export function useCheckout() {
     }
   }, [deliveryMethod, selectedAddressId]);
 
-  // Recalculate fee when delivery method or address changes
+  // Recalculate fee when delivery method or address changes (debounced)
   useEffect(() => {
-    calculateFee();
-  }, [calculateFee]);
+    // Clear pending debounce
+    if (feeDebounceRef.current) {
+      clearTimeout(feeDebounceRef.current);
+    }
+
+    // Check cache for instant response
+    const cacheKey = `${deliveryMethod}:${selectedAddressId}`;
+    const cached = feeCacheRef.current.get(cacheKey);
+    if (cached) {
+      setDeliveryFee(cached.fee);
+      setDeliveryFeeNote(cached.note);
+      setDeliveryDistanceKm(cached.distance);
+      return;
+    }
+
+    // Debounce API call
+    feeDebounceRef.current = setTimeout(() => {
+      calculateFee();
+    }, FEE_DEBOUNCE_MS);
+
+    return () => {
+      if (feeDebounceRef.current) {
+        clearTimeout(feeDebounceRef.current);
+      }
+    };
+  }, [deliveryMethod, selectedAddressId, calculateFee]);
 
   // Fetch bank details when bank_transfer selected
   const fetchBankDetails = useCallback(async () => {
