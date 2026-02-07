@@ -44,7 +44,6 @@ export function useCheckout() {
   const [selectedAddressId, setSelectedAddressId] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<string>("cash_on_delivery");
   const [orderNotes, setOrderNotes] = useState("");
-  const [preferredDeliveryDate, setPreferredDeliveryDate] = useState("");
 
   // Data state
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -115,6 +114,14 @@ export function useCheckout() {
 
   // Calculate delivery fee (with caching)
   const calculateFee = useCallback(async () => {
+    // Standard delivery: fee is confirmed by admin later
+    if (deliveryMethod === "standard") {
+      setDeliveryFee(0);
+      setDeliveryFeeNote("To be confirmed before dispatch");
+      setDeliveryDistanceKm(null);
+      return;
+    }
+
     // Check cache first
     const cacheKey = `${deliveryMethod}:${selectedAddressId}`;
     const cached = feeCacheRef.current.get(cacheKey);
@@ -223,7 +230,6 @@ export function useCheckout() {
           delivery_address_id: selectedAddressId || undefined,
           payment_method: paymentMethod,
           order_notes: orderNotes || undefined,
-          preferred_delivery_date: preferredDeliveryDate || undefined,
         }),
       });
 
@@ -250,7 +256,7 @@ export function useCheckout() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [deliveryMethod, selectedAddressId, paymentMethod, orderNotes, preferredDeliveryDate]);
+  }, [deliveryMethod, selectedAddressId, paymentMethod, orderNotes]);
 
   // Computed values
   const subtotal = cart.subtotal;
@@ -284,8 +290,6 @@ export function useCheckout() {
     setPaymentMethod,
     orderNotes,
     setOrderNotes,
-    preferredDeliveryDate,
-    setPreferredDeliveryDate,
 
     // Data
     addresses,

@@ -12,6 +12,7 @@ interface OrderSummaryProps {
   isSubmitting: boolean;
   canSubmit: boolean;
   isCalculatingFee: boolean;
+  deliveryMethod?: string;
 }
 
 export default function OrderSummary({
@@ -24,7 +25,10 @@ export default function OrderSummary({
   isSubmitting,
   canSubmit,
   isCalculatingFee,
+  deliveryMethod,
 }: OrderSummaryProps) {
+  const isStandardDelivery = deliveryMethod === "standard";
+
   return (
     <div className="rounded-lg border border-gray-200 bg-gray-50 p-5 sticky top-24">
       <h2 className="text-base font-semibold text-gray-900 mb-4">
@@ -66,6 +70,8 @@ export default function OrderSummary({
           <span className="font-medium text-gray-900">
             {isCalculatingFee ? (
               <span className="text-gray-400">Calculating...</span>
+            ) : isStandardDelivery ? (
+              <span className="text-amber-600">To be confirmed</span>
             ) : deliveryFee > 0 ? (
               `Rs ${deliveryFee.toLocaleString("en-LK")}`
             ) : (
@@ -82,6 +88,11 @@ export default function OrderSummary({
             Rs {total.toLocaleString("en-LK")}
           </span>
         </div>
+        {isStandardDelivery && (
+          <p className="text-xs text-amber-600">
+            Delivery fee is not included. It will be confirmed before dispatch.
+          </p>
+        )}
       </div>
 
       {/* Place Order button — desktop */}

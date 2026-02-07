@@ -324,22 +324,6 @@ export default function CheckoutPageClient() {
             </p>
           </div>
 
-          {/* Preferred delivery date — shown for delivery methods */}
-          {checkout.needsAddress && (
-            <div>
-              <h3 className="text-sm font-semibold text-gray-900 mb-2">
-                Preferred Delivery Date <span className="font-normal text-gray-400">(optional)</span>
-              </h3>
-              <input
-                type="date"
-                value={checkout.preferredDeliveryDate}
-                onChange={(e) => checkout.setPreferredDeliveryDate(e.target.value)}
-                min={new Date().toISOString().split("T")[0]}
-                className="w-full sm:w-64 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-green focus:ring-1 focus:ring-brand-green outline-none"
-              />
-            </div>
-          )}
-
           {/* Contact notice */}
           <div className="rounded-lg border border-gray-200 bg-white p-4">
             <div className="flex gap-3">
@@ -395,6 +379,7 @@ export default function CheckoutPageClient() {
             isSubmitting={checkout.isSubmitting}
             canSubmit={checkout.canSubmit}
             isCalculatingFee={checkout.isCalculatingFee}
+            deliveryMethod={checkout.deliveryMethod}
           />
         </div>
       </div>

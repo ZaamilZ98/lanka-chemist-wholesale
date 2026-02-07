@@ -113,17 +113,17 @@ export default function ProductFormClient({ mode, productId }: Props) {
     async function loadDropdowns() {
       try {
         const [catRes, mfrRes] = await Promise.all([
-          fetch("/api/admin/categories").catch(() => null),
-          fetch("/api/admin/manufacturers").catch(() => null),
+          fetch("/api/categories").catch(() => null),
+          fetch("/api/manufacturers").catch(() => null),
         ]);
         if (catRes?.ok) {
           const data = await catRes.json();
-          const cats = (data.data || data || []) as { id: string; name: string }[];
+          const cats = (data.categories || []) as { id: string; name: string }[];
           setCategories(cats.map((c) => ({ value: c.id, label: c.name })));
         }
         if (mfrRes?.ok) {
           const data = await mfrRes.json();
-          const mfrs = (data.data || data || []) as { id: string; name: string }[];
+          const mfrs = (data.manufacturers || []) as { id: string; name: string }[];
           setManufacturers(mfrs.map((m) => ({ value: m.id, label: m.name })));
         }
       } catch { /* ignore */ }

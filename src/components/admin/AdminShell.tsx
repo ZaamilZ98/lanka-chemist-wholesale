@@ -25,6 +25,16 @@ const navItems = [
     ),
   },
   {
+    label: "Categories",
+    href: "/admin/categories",
+    icon: (
+      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
+      </svg>
+    ),
+  },
+  {
     label: "Orders",
     href: "/admin/orders",
     icon: (
@@ -45,6 +55,7 @@ const navItems = [
   {
     label: "Reports",
     href: "/admin/reports",
+    target: "_blank" as const,
     icon: (
       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
@@ -58,9 +69,61 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   const { admin, isLoading, logout } = useAdminAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Password change modal state
+  const [showPwModal, setShowPwModal] = useState(false);
+  const [pwCurrent, setPwCurrent] = useState("");
+  const [pwNew, setPwNew] = useState("");
+  const [pwConfirm, setPwConfirm] = useState("");
+  const [pwError, setPwError] = useState("");
+  const [pwSuccess, setPwSuccess] = useState(false);
+  const [pwLoading, setPwLoading] = useState(false);
+
   function isActive(href: string) {
     if (href === "/admin") return pathname === "/admin";
     return pathname.startsWith(href);
+  }
+
+  function openPwModal() {
+    setPwCurrent("");
+    setPwNew("");
+    setPwConfirm("");
+    setPwError("");
+    setPwSuccess(false);
+    setShowPwModal(true);
+  }
+
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    setPwError("");
+    setPwSuccess(false);
+
+    if (pwNew.length < 8) {
+      setPwError("New password must be at least 8 characters");
+      return;
+    }
+    if (pwNew !== pwConfirm) {
+      setPwError("Passwords do not match");
+      return;
+    }
+
+    setPwLoading(true);
+    try {
+      const res = await fetch("/api/admin/auth/change-password", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ current_password: pwCurrent, new_password: pwNew }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to change password");
+      }
+      setPwSuccess(true);
+      setTimeout(() => setShowPwModal(false), 1500);
+    } catch (err) {
+      setPwError(err instanceof Error ? err.message : "Failed to change password");
+    } finally {
+      setPwLoading(false);
+    }
   }
 
   const sidebar = (
@@ -85,6 +148,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
               key={item.href}
               href={item.href}
               onClick={() => setSidebarOpen(false)}
+              {...("target" in item && item.target ? { target: item.target, rel: "noopener noreferrer" } : {})}
               className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                 active
                   ? "bg-brand-green text-white"
@@ -157,9 +221,13 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
               <div className="h-4 w-24 bg-gray-100 rounded animate-pulse" />
             ) : admin ? (
               <>
-                <span className="text-sm text-gray-700 font-medium hidden sm:block">
+                <button
+                  onClick={openPwModal}
+                  className="text-sm text-gray-700 font-medium hidden sm:block hover:text-brand-green transition-colors cursor-pointer"
+                  title="Change password"
+                >
                   {admin.name}
-                </span>
+                </button>
                 <button
                   onClick={logout}
                   className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
@@ -179,6 +247,81 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
           {children}
         </main>
       </div>
+
+      {/* Password Change Modal */}
+      {showPwModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="fixed inset-0 bg-black/50" onClick={() => !pwLoading && setShowPwModal(false)} />
+          <div className="relative z-50 w-full max-w-md rounded-xl bg-white p-6 shadow-xl mx-4">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Change Password</h2>
+
+            {pwSuccess ? (
+              <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-700">
+                Password changed successfully.
+              </div>
+            ) : (
+              <form onSubmit={handleChangePassword} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                  <input
+                    type="password"
+                    value={pwCurrent}
+                    onChange={(e) => setPwCurrent(e.target.value)}
+                    required
+                    className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-green focus:outline-none focus:ring-1 focus:ring-brand-green"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                  <input
+                    type="password"
+                    value={pwNew}
+                    onChange={(e) => setPwNew(e.target.value)}
+                    required
+                    minLength={8}
+                    className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-green focus:outline-none focus:ring-1 focus:ring-brand-green"
+                  />
+                  <p className="mt-1 text-xs text-gray-400">Minimum 8 characters</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                  <input
+                    type="password"
+                    value={pwConfirm}
+                    onChange={(e) => setPwConfirm(e.target.value)}
+                    required
+                    className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-green focus:outline-none focus:ring-1 focus:ring-brand-green"
+                  />
+                </div>
+
+                {pwError && (
+                  <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                    {pwError}
+                  </div>
+                )}
+
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowPwModal(false)}
+                    disabled={pwLoading}
+                    className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={pwLoading}
+                    className="rounded-lg bg-brand-green px-4 py-2 text-sm font-medium text-white hover:bg-brand-green-dark transition-colors disabled:opacity-50"
+                  >
+                    {pwLoading ? "Saving..." : "Change Password"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

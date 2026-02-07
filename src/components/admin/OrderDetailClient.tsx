@@ -49,6 +49,11 @@ export default function OrderDetailClient({ orderId }: Props) {
   // Payment status
   const [paymentAction, setPaymentAction] = useState<string | null>(null);
 
+  // Delivery fee editing
+  const [editingFee, setEditingFee] = useState(false);
+  const [feeValue, setFeeValue] = useState("");
+  const [feeLoading, setFeeLoading] = useState(false);
+
   // Invoice
   const [invoiceLoading, setInvoiceLoading] = useState(false);
 
@@ -120,6 +125,34 @@ export default function OrderDetailClient({ orderId }: Props) {
       setActionError(err instanceof Error ? err.message : "Failed to update payment");
     } finally {
       setActionLoading(false);
+    }
+  }
+
+  async function handleFeeUpdate() {
+    if (!order) return;
+    const fee = parseFloat(feeValue);
+    if (isNaN(fee) || fee < 0) {
+      setActionError("Please enter a valid delivery fee");
+      return;
+    }
+    setFeeLoading(true);
+    setActionError("");
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ delivery_fee: fee }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update");
+      }
+      setEditingFee(false);
+      fetchOrder();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to update delivery fee");
+    } finally {
+      setFeeLoading(false);
     }
   }
 
@@ -275,19 +308,62 @@ export default function OrderDetailClient({ orderId }: Props) {
                     <td colSpan={4} className="px-4 py-2 text-right text-sm text-gray-600">Subtotal</td>
                     <td className="px-4 py-2 text-right tabular-nums font-medium text-gray-900">{formatCurrency(order.subtotal)}</td>
                   </tr>
-                  {order.delivery_fee > 0 && (
-                    <tr>
-                      <td colSpan={4} className="px-4 py-2 text-right text-sm text-gray-600">
-                        Delivery Fee
+                  <tr>
+                    <td colSpan={4} className="px-4 py-2 text-right text-sm text-gray-600">
+                      <div className="flex items-center justify-end gap-2">
+                        <span>Delivery Fee</span>
                         {order.delivery_distance_km && (
-                          <span className="text-xs text-gray-400 ml-1">
+                          <span className="text-xs text-gray-400">
                             ({order.delivery_distance_km} km)
                           </span>
                         )}
-                      </td>
-                      <td className="px-4 py-2 text-right tabular-nums font-medium text-gray-900">{formatCurrency(order.delivery_fee)}</td>
-                    </tr>
-                  )}
+                        {!editingFee && order.status !== "cancelled" && order.status !== "delivered" && (
+                          <button
+                            type="button"
+                            onClick={() => { setEditingFee(true); setFeeValue(String(order.delivery_fee)); }}
+                            className="text-xs text-brand-green hover:text-brand-green-dark font-medium"
+                          >
+                            Edit
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-2 text-right tabular-nums font-medium text-gray-900">
+                      {editingFee ? (
+                        <div className="flex items-center justify-end gap-1.5">
+                          <span className="text-xs text-gray-500">Rs</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={feeValue}
+                            onChange={(e) => setFeeValue(e.target.value)}
+                            className="w-24 rounded border border-gray-300 px-2 py-1 text-sm text-right focus:border-brand-green focus:outline-none focus:ring-1 focus:ring-brand-green"
+                            autoFocus
+                          />
+                          <button
+                            type="button"
+                            onClick={handleFeeUpdate}
+                            disabled={feeLoading}
+                            className="rounded bg-brand-green px-2 py-1 text-xs text-white hover:bg-brand-green-dark disabled:opacity-50"
+                          >
+                            {feeLoading ? "..." : "Save"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingFee(false)}
+                            className="rounded px-2 py-1 text-xs text-gray-500 hover:text-gray-700"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : order.delivery_fee === 0 && order.delivery_method === "standard" ? (
+                        <span className="text-amber-600 text-xs font-medium">To be confirmed</span>
+                      ) : (
+                        formatCurrency(order.delivery_fee)
+                      )}
+                    </td>
+                  </tr>
                   <tr className="border-t border-gray-300">
                     <td colSpan={4} className="px-4 py-3 text-right text-sm font-semibold text-gray-900">Total</td>
                     <td className="px-4 py-3 text-right tabular-nums text-lg font-bold text-gray-900">{formatCurrency(order.total)}</td>

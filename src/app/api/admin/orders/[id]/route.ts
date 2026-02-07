@@ -84,14 +84,14 @@ export async function PATCH(
 
     const { id } = await params;
     const body = await request.json();
-    const { status, payment_status, notes, cancelled_reason } = body;
+    const { status, payment_status, notes, cancelled_reason, delivery_fee } = body;
 
     const supabase = createServerClient();
 
     // Get current order
     const { data: order, error: fetchErr } = await supabase
       .from("orders")
-      .select("id, status, payment_status")
+      .select("id, status, payment_status, subtotal")
       .eq("id", id)
       .single();
 
@@ -135,6 +135,16 @@ export async function PATCH(
         notes: notes?.trim() || null,
         changed_by: admin.sub,
       });
+    }
+
+    // Handle delivery fee update
+    if (delivery_fee !== undefined && delivery_fee !== null) {
+      const fee = parseFloat(delivery_fee);
+      if (isNaN(fee) || fee < 0) {
+        return NextResponse.json({ error: "Invalid delivery fee" }, { status: 400 });
+      }
+      updateData.delivery_fee = fee;
+      updateData.total = order.subtotal + fee;
     }
 
     // Handle payment status change

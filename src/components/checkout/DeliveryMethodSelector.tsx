@@ -18,9 +18,31 @@ const METHODS = [
     ),
   },
   {
+    id: "hospital_nhsl",
+    label: "Hospital Pick Up - NHSL Colombo",
+    price: "Free",
+    description: "Once a week",
+    icon: (
+      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
+      </svg>
+    ),
+  },
+  {
+    id: "hospital_csth",
+    label: "Hospital Pick Up - CSTH Kalubowila",
+    price: "Free",
+    description: "Once a week",
+    icon: (
+      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
+      </svg>
+    ),
+  },
+  {
     id: "standard",
     label: "Standard Delivery",
-    price: "Rs 25/km",
+    price: "Calculated per order",
     description: "Delivered to your address",
     icon: (
       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -48,7 +70,7 @@ export default function DeliveryMethodSelector({
   return (
     <div className="space-y-3">
       <h3 className="text-sm font-semibold text-gray-900">Delivery Method</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {METHODS.map((method) => {
           const selected = value === method.id;
           return (

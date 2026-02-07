@@ -224,6 +224,11 @@ export async function generateInvoice(orderId: string): Promise<InvoiceResult> {
     doc.text("Delivery Fee", totalsX, rowY, { width: totalsW - 80 });
     doc.text(formatCurrency(order.delivery_fee), totalsX + totalsW - 80, rowY, { width: 80, align: "right" });
     rowY += 16;
+  } else if (order.delivery_method === "standard") {
+    doc.text("Delivery Fee", totalsX, rowY, { width: totalsW - 80 });
+    doc.fillColor("#b45309").text("To be confirmed", totalsX + totalsW - 80, rowY, { width: 80, align: "right" });
+    doc.fillColor("#555555");
+    rowY += 16;
   }
 
   // Total line

@@ -16,7 +16,7 @@ export type OrderStatus =
   | "dispatched"
   | "delivered"
   | "cancelled";
-export type DeliveryMethod = "pickup" | "standard" | "express";
+export type DeliveryMethod = "pickup" | "standard" | "express" | "hospital_nhsl" | "hospital_csth";
 export type PaymentMethod = "cash_on_delivery" | "bank_transfer";
 export type PaymentStatus = "pending" | "paid" | "refunded";
 export type ProductSection = "medicines" | "surgical" | "equipment" | "spc";

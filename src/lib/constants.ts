@@ -82,6 +82,8 @@ export const DELIVERY_METHOD_LABELS: Record<string, string> = {
   pickup: "Store Pickup",
   standard: "Standard Delivery",
   express: "Express Delivery",
+  hospital_nhsl: "Hospital Pick Up - NHSL Colombo",
+  hospital_csth: "Hospital Pick Up - CSTH Kalubowila",
 };
 
 // Payment methods

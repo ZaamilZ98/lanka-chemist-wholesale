@@ -2,14 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedCustomer } from "@/lib/auth";
 import { createServerClient } from "@/lib/supabase/server";
 import { sanitizeString } from "@/lib/validate";
-import { calculateDistance, calculateDeliveryFee } from "@/lib/haversine";
-import { DELIVERY_RATE_PER_KM } from "@/lib/constants";
 import { processNewOrder } from "@/lib/order-notifications";
 import { logError } from "@/lib/logger";
 import type { CartItemResponse, StockIssue, CustomerOrderListResponse } from "@/types/api";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const VALID_DELIVERY_METHODS = ["pickup", "standard", "express"];
+const VALID_DELIVERY_METHODS = ["pickup", "standard", "express", "hospital_nhsl", "hospital_csth"];
 const VALID_PAYMENT_METHODS = ["cash_on_delivery", "bank_transfer"];
 const DEFAULT_PER_PAGE = 10;
 const MAX_PER_PAGE = 50;
@@ -267,35 +265,9 @@ export async function POST(request: NextRequest) {
   );
 
   // Calculate delivery fee
-  let deliveryFee = 0;
-  let deliveryDistanceKm: number | null = null;
-
-  if (deliveryMethod === "standard" && deliveryAddress) {
-    // Fetch store coordinates
-    const { data: storeSettings } = await supabase
-      .from("store_settings")
-      .select("key, value")
-      .in("key", ["store_latitude", "store_longitude"]);
-
-    const storeLat = storeSettings?.find((s) => s.key === "store_latitude")?.value;
-    const storeLng = storeSettings?.find((s) => s.key === "store_longitude")?.value;
-
-    if (
-      deliveryAddress.latitude != null &&
-      deliveryAddress.longitude != null &&
-      storeLat && storeLng &&
-      !isNaN(Number(storeLat)) && !isNaN(Number(storeLng))
-    ) {
-      const distance = calculateDistance(
-        Number(storeLat),
-        Number(storeLng),
-        Number(deliveryAddress.latitude),
-        Number(deliveryAddress.longitude),
-      );
-      deliveryFee = calculateDeliveryFee(distance, DELIVERY_RATE_PER_KM);
-      deliveryDistanceKm = Math.round(distance * 100) / 100;
-    }
-  }
+  // Standard delivery: fee is 0 at placement, admin sets it later
+  const deliveryFee = 0;
+  const deliveryDistanceKm: number | null = null;
 
   const total = subtotal + deliveryFee;
 
